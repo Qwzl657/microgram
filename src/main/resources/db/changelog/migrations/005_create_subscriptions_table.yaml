@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005_create_subscriptions_table
+      author: microgram
+      changes:
+        - createTable:
+            tableName: subscriptions
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: follower_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_sub_follower
+                    references: users(id)
+              - column:
+                  name: following_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_sub_following
+                    references: users(id)
+        - addUniqueConstraint:
+            tableName: subscriptions
+            columnNames: follower_id, following_id
+            constraintName: uq_subscriptions

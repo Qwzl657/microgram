@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004_create_likes_table
+      author: microgram
+      changes:
+        - createTable:
+            tableName: likes
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: post_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_likes_post
+                    references: posts(id)
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_likes_user
+                    references: users(id)
+        - addUniqueConstraint:
+            tableName: likes
+            columnNames: post_id, user_id
+            constraintName: uq_likes_post_user

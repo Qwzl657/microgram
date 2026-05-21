@@ -1,1 +1,39 @@
-spring.application.name=microgram
+spring:
+  datasource:
+    url: jdbc:h2:mem:microgram;MODE=PostgreSQL;NON_KEYWORDS=USER
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    open-in-view: false
+
+  liquibase:
+    change-log: classpath:db/changelog/master.yaml
+    enabled: true
+
+  freemarker:
+    template-loader-path: classpath:/templates/
+    suffix: .ftlh
+    charset: UTF-8
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+server:
+  port: 8082
+
+logging:
+  level:
+    kg.attractor.microgram: DEBUG
+    org.springframework.security: DEBUG
