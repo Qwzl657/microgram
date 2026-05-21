@@ -1,34 +1,39 @@
 <#import "/spring.ftl" as spring>
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="${.locale}">
 <head>
     <meta charset="UTF-8">
-    <title>Новая публикация — Microgram</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><@spring.message 'post.new.title'/> — Microgram</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
           rel="stylesheet">
 </head>
 <body class="bg-light">
 
-<#include "../layout/navbar.ftlh">
+<#include "/layout/navbar.ftlh">
 
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow-sm">
-                <div class="card-header fw-bold">Новая публикация</div>
+                <div class="card-header fw-bold">
+                    <@spring.message 'post.new.title'/>
+                </div>
                 <div class="card-body">
 
                     <form action="/posts" method="post"
                           enctype="multipart/form-data">
 
-                        <input type="hidden"
-                               name="${_csrf.parameterName}"
-                               value="${_csrf.token}"/>
+                        <#if _csrf??>
+                            <input type="hidden"
+                                   name="${(_csrf.parameterName)!'_csrf'}"
+                                   value="${(_csrf.token)!''}"/>
+                        </#if>
 
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">
-                                Фотография
+                                <@spring.message 'post.new.image'/>
                             </label>
                             <input type="file"
                                    id="image-input"
@@ -46,23 +51,21 @@
                             <img src=""
                                  alt="Превью"
                                  class="img-fluid rounded"
-                                 style="max-height: 300px; object-fit: cover;">
+                                 style="max-height:300px; object-fit:cover;">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">
-                                Описание
+                                <@spring.message 'post.new.description'/>
                             </label>
-
                             <textarea id="description-input"
                                       name="description"
                                       class="form-control"
                                       rows="4"
-                                      placeholder="Введите описание..."
                                       maxlength="2200"></textarea>
                             <div class="text-end mt-1">
                                 <small>
-                                    Осталось символов:
+                                    <@spring.message 'post.new.chars.left'/>:
                                     <span id="description-counter"
                                           class="text-muted">2200</span>
                                 </small>
@@ -74,12 +77,11 @@
                         </div>
 
                         <div class="d-flex gap-2">
-                            <button type="submit"
-                                    class="btn btn-primary">
-                                Опубликовать
+                            <button type="submit" class="btn btn-primary">
+                                <@spring.message 'post.new.submit'/>
                             </button>
                             <a href="/" class="btn btn-outline-secondary">
-                                Отмена
+                                <@spring.message 'post.new.cancel'/>
                             </a>
                         </div>
 

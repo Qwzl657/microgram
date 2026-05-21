@@ -1,9 +1,10 @@
 <#import "/spring.ftl" as spring>
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="${.locale}">
 <head>
     <meta charset="UTF-8">
-    <title>Регистрация — Microgram</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><@spring.message 'auth.register.title'/> — Microgram</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
           rel="stylesheet">
 </head>
@@ -14,7 +15,9 @@
             <div class="card shadow-sm">
                 <div class="card-body p-4">
 
-                    <h3 class="text-center fw-bold mb-4">Регистрация</h3>
+                    <h3 class="text-center fw-bold mb-4">
+                        <@spring.message 'auth.register.title'/>
+                    </h3>
 
                     <#if error??>
                         <div class="alert alert-danger">${error}</div>
@@ -22,59 +25,67 @@
 
                     <form action="/auth/register" method="post">
 
-                        <input type="hidden"
-                               name="${_csrf.parameterName}"
-                               value="${_csrf.token}"/>
+                        <#if _csrf??>
+                            <input type="hidden"
+                                   name="${(_csrf.parameterName)!'_csrf'}"
+                                   value="${(_csrf.token)!''}"/>
+                        </#if>
 
                         <div class="mb-3">
+                            <label class="form-label">
+                                <@spring.message 'auth.register.username'/>
+                            </label>
+                            <@spring.bind "user.username"/>
                             <input type="text"
                                    name="username"
-                                   class="form-control
-                                   <#if user?? && user.username??>
-                                       <@spring.bind "user.username"/>
-                                       <#if spring.status.error>is-invalid</#if>
-                                   </#if>"
-                                   placeholder="Имя пользователя"
-                                   value="${user.username!''}">
-                            <@spring.bind "user.username"/>
+                                   class="form-control ${spring.status.error?string('is-invalid', '')}"
+                                   value="${spring.status.value!''}">
                             <#list spring.status.errorMessages as msg>
-                                <div class="invalid-feedback d-block">${msg}</div>
+                                <div class="invalid-feedback">${msg}</div>
                             </#list>
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">
+                                <@spring.message 'auth.register.email'/>
+                            </label>
+                            <@spring.bind "user.email"/>
                             <input type="email"
                                    name="email"
-                                   class="form-control"
-                                   placeholder="Email"
-                                   value="${user.email!''}">
-                            <@spring.bind "user.email"/>
+                                   class="form-control ${spring.status.error?string('is-invalid', '')}"
+                                   value="${spring.status.value!''}">
                             <#list spring.status.errorMessages as msg>
-                                <div class="invalid-feedback d-block">${msg}</div>
+                                <div class="invalid-feedback">${msg}</div>
                             </#list>
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">
+                                <@spring.message 'auth.register.name'/>
+                            </label>
+                            <@spring.bind "user.name"/>
                             <input type="text"
                                    name="name"
                                    class="form-control"
-                                   placeholder="Имя (необязательно)"
-                                   value="${user.name!''}">
+                                   value="${spring.status.value!''}">
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">
+                                <@spring.message 'auth.register.password'/>
+                            </label>
+                            <@spring.bind "user.password"/>
                             <input type="password"
                                    name="password"
-                                   class="form-control"
-                                   placeholder="Пароль (мин. 6 символов)">
-                            <@spring.bind "user.password"/>
+                                   class="form-control ${spring.status.error?string('is-invalid', '')}"
+                                   placeholder="<@spring.message 'auth.register.password.hint'/>">
                             <#list spring.status.errorMessages as msg>
-                                <div class="invalid-feedback d-block">${msg}</div>
+                                <div class="invalid-feedback">${msg}</div>
                             </#list>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">
-                            Зарегистрироваться
+                            <@spring.message 'auth.register.submit'/>
                         </button>
                     </form>
 
@@ -82,12 +93,16 @@
             </div>
 
             <div class="text-center mt-3">
-                Уже есть аккаунт?
-                <a href="/auth/login">Войти</a>
+                <@spring.message 'auth.register.have.account'/>
+                <a href="/auth/login">
+                    <@spring.message 'nav.login'/>
+                </a>
             </div>
 
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+</script>
 </body>
 </html>
