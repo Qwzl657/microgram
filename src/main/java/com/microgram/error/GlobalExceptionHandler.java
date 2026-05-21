@@ -1,9 +1,9 @@
-package com.microgram.exception.handler;
+package com.microgram.error;
 
-import com.microgram.exception.BaseException;
 import com.microgram.exception.ForbiddenException;
 import com.microgram.exception.PostNotFoundException;
 import com.microgram.exception.UserNotFoundException;
+import com.microgram.exception.CommentNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
@@ -28,6 +28,15 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handlePostNotFound(PostNotFoundException ex, Model model) {
         log.warn("Публикация не найдена: {}", ex.getMessage());
+        model.addAttribute("status", 404);
+        model.addAttribute("message", ex.getMessage());
+        return "errors/error";
+    }
+
+    @ExceptionHandler(CommentNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleCommentNotFound(CommentNotFoundException ex, Model model) {
+        log.warn("Комментарий не найден: {}", ex.getMessage());
         model.addAttribute("status", 404);
         model.addAttribute("message", ex.getMessage());
         return "errors/error";

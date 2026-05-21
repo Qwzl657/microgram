@@ -17,14 +17,12 @@ public class MainController {
 
     @GetMapping("/")
     public String index(Authentication auth, Model model) {
-
         if (auth != null && auth.isAuthenticated()) {
             String email = auth.getName();
             model.addAttribute("posts",
                     postService.getFeedForUser(email));
-            log.debug("Загружена лента для: {}", email);
+            log.debug("Лента загружена для: {}", email);
         }
-
         return "index";
     }
 }
