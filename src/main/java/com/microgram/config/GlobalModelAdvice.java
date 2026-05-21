@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 @Slf4j
-@ControllerAdvice
+@ControllerAdvice(basePackages = "kg.attractor.microgram.controller")
 @RequiredArgsConstructor
 public class GlobalModelAdvice {
 
@@ -17,17 +17,13 @@ public class GlobalModelAdvice {
 
     @ModelAttribute("currentUser")
     public UserDto getCurrentUser(Authentication auth) {
-
         if (auth == null || !auth.isAuthenticated()
                 || auth.getName().equals("anonymousUser")) {
             return null;
         }
-
         try {
-
             return userService.getUserDtoByEmail(auth.getName());
         } catch (Exception e) {
-
             log.debug("Не удалось загрузить currentUser: {}", e.getMessage());
             return null;
         }

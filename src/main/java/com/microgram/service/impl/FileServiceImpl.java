@@ -16,28 +16,56 @@ import java.util.UUID;
 @Service
 public class FileServiceImpl implements FileService {
 
-    @Value("${app.upload.avatars:src/main/resources/static/avatars}")
+    @Value("${app.upload.avatars:uploads/avatars}")
     private String avatarsDir;
 
-    @Value("${app.upload.posts:src/main/resources/static/posts}")
+    @Value("${app.upload.posts:uploads/posts}")
     private String postsDir;
 
     @Override
     public String saveAvatar(MultipartFile file, String username) {
-        String fileName = username + "_" + UUID.randomUUID()
+
+        if (file == null || file.isEmpty()) {
+            log.warn("Попытка сохранить пустой файл аватара для: {}", username);
+            return "default.png";
+        }
+
+        if (!isImage(file)) {
+            log.warn("Файл аватара не является изображением: {}",
+                    file.getOriginalFilename());
+            return "default.png";
+        }
+
+        String fileName = username + "_"
+                + UUID.randomUUID()
                 + getExtension(file.getOriginalFilename());
 
         saveFile(file, avatarsDir, fileName);
+
         log.info("Аватар сохранён: {}", fileName);
         return fileName;
     }
 
     @Override
     public String savePostImage(MultipartFile file) {
+
+        if (file == null || file.isEmpty()) {
+            log.warn("Попытка сохранить пустое изображение поста");
+            throw new RuntimeException("Файл изображения пустой");
+        }
+
+        if (!isImage(file)) {
+            log.warn("Файл поста не является изображением: {}",
+                    file.getOriginalFilename());
+            throw new RuntimeException(
+                    "Файл должен быть изображением");
+        }
+
         String fileName = UUID.randomUUID()
                 + getExtension(file.getOriginalFilename());
 
         saveFile(file, postsDir, fileName);
+
         log.info("Изображение поста сохранено: {}", fileName);
         return fileName;
     }
@@ -47,22 +75,34 @@ public class FileServiceImpl implements FileService {
             Path dirPath = Paths.get(dir);
             if (!Files.exists(dirPath)) {
                 Files.createDirectories(dirPath);
-                log.debug("Создана папка для файлов: {}", dirPath);
+                log.debug("Создана папка: {}", dirPath.toAbsolutePath());
             }
 
             Path filePath = dirPath.resolve(fileName);
             file.transferTo(filePath.toFile());
 
+            log.debug("Файл записан: {}", filePath.toAbsolutePath());
+
         } catch (IOException e) {
-            log.error("Ошибка сохранения файла {}: {}", fileName, e.getMessage());
-            throw new RuntimeException("Не удалось сохранить файл: " + fileName);
+            log.error("Ошибка сохранения файла {}: {}",
+                    fileName, e.getMessage(), e);
+            throw new RuntimeException(
+                    "Не удалось сохранить файл: " + fileName, e);
         }
+    }
+
+    private boolean isImage(MultipartFile file) {
+        String contentType = file.getContentType();
+        return contentType != null && contentType.startsWith("image/");
     }
 
     private String getExtension(String originalFileName) {
         if (originalFileName == null || !originalFileName.contains(".")) {
+            // По умолчанию — .jpg если расширение не определено
             return ".jpg";
         }
-        return originalFileName.substring(originalFileName.lastIndexOf("."));
+        return originalFileName
+                .substring(originalFileName.lastIndexOf("."))
+                .toLowerCase();
     }
 }

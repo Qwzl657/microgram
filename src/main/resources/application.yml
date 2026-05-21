@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:microgram;MODE=PostgreSQL;NON_KEYWORDS=USER
+    url: jdbc:h2:file:./db/microgram;AUTO_SERVER=TRUE;NON_KEYWORDS=USER
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -14,6 +14,10 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
     open-in-view: false
 
   liquibase:
@@ -24,22 +28,29 @@ spring:
     template-loader-path: classpath:/templates/
     suffix: .ftlh
     charset: UTF-8
+    # ?????????: ??? ? JobSearch ? ?????? ???????? ? ????????
+    expose-session-attributes: true
 
   servlet:
     multipart:
       max-file-size: 5MB
-      max-request-size: 10MB
+      max-request-size: 5MB
+
+  sql:
+    init:
+      mode: never
 
 server:
   port: 8082
 
 app:
   upload:
-    avatars: src/main/resources/static/avatars
-    posts: src/main/resources/static/posts
+    avatars: uploads/avatars
+    posts: uploads/posts
 
 logging:
-  level:
-    kg.attractor.microgram: DEBUG
-    org.springframework.security: INFO
   config: classpath:logback-spring.xml
+  level:
+    root: INFO
+    kg.attractor.microgram: DEBUG
+    org.springframework.security: DEBUG

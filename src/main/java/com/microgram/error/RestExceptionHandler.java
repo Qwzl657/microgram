@@ -1,9 +1,11 @@
 package com.microgram.error;
 
+import com.microgram.controller.PostApiController;
+import com.microgram.controller.UserApiController;
+import com.microgram.exception.CommentNotFoundException;
 import com.microgram.exception.ForbiddenException;
 import com.microgram.exception.PostNotFoundException;
 import com.microgram.exception.UserNotFoundException;
-import com.microgram.exception.CommentNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,7 +13,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @Slf4j
-@RestControllerAdvice(basePackages = "kg.attractor.microgram.controller")
+@RestControllerAdvice(assignableTypes = {
+        PostApiController.class,
+        UserApiController.class
+})
 public class RestExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
@@ -38,7 +43,8 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(CommentNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponseBody handleCommentNotFound(CommentNotFoundException ex) {
+    public ErrorResponseBody handleCommentNotFound(
+            CommentNotFoundException ex) {
         log.warn("REST: Комментарий не найден: {}", ex.getMessage());
         return ErrorResponseBody.builder()
                 .status(404)
