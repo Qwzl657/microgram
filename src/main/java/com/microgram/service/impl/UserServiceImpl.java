@@ -22,61 +22,57 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
 
-        User user = userRepository.findByEmail(username)
-                .orElseGet(() ->
-                        userRepository.findByUsername(username)
-                                .orElseThrow(() -> {
-                                    log.warn("Попытка входа с несуществующим логином: {}", username);
-                                    return new UsernameNotFoundException(
-                                            "Пользователь не найден: " + username
-                                    );
-                                })
-                );
-
-        log.info("Загружен пользователь для аутентификации: {}", user.getEmail());
-        return user;
+        return userRepository.findByEmail(username)
+                .or(() -> userRepository.findByUsername(username))
+                .orElseThrow(() -> {
+                    log.warn("Попытка входа: пользователь не найден: {}",
+                            username);
+                    return new UsernameNotFoundException(
+                            "Пользователь не найден: " + username
+                    );
+                });
     }
 
     @Override
     @Transactional
     public void register(UserCreateDto dto) {
+
         if (userRepository.existsByEmail(dto.getEmail())) {
-            log.warn("Попытка регистрации с уже существующим email: {}", dto.getEmail());
+            log.warn("Регистрация: email уже занят: {}", dto.getEmail());
             throw new IllegalArgumentException("Email уже используется");
         }
 
         if (userRepository.existsByUsername(dto.getUsername())) {
-            log.warn("Попытка регистрации с уже существующим username: {}", dto.getUsername());
-            throw new IllegalArgumentException("Имя пользователя уже занято");
+            log.warn("Регистрация: username уже занят: {}",
+                    dto.getUsername());
+            throw new IllegalArgumentException(
+                    "Имя пользователя уже занято");
         }
 
         User user = User.builder()
                 .username(dto.getUsername())
                 .email(dto.getEmail())
                 .password(passwordEncoder.encode(dto.getPassword()))
-                .name(dto.getName() != null ? dto.getName() : dto.getUsername())
+                .name(dto.getName() != null && !dto.getName().isBlank()
+                        ? dto.getName()
+                        : dto.getUsername())
+                .avatar("default.png")
                 .enabled(true)
-                .postCount(0)
-                .followersCount(0)
-                .followingCount(0)
                 .build();
 
         userRepository.save(user);
-
-        log.info("Зарегистрирован новый пользователь: {}", user.getEmail());
+        log.info("Зарегистрирован пользователь: {}", user.getEmail());
     }
 
     @Override
     public UserDto getUserDtoByEmail(String email) {
-        User user = getUserByEmail(email);
-        return mapToDto(user);
+        return mapToDto(getUserByEmail(email));
     }
 
     @Override
@@ -90,12 +86,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUserDtoByUsername(String username) {
-        User user = userRepository.findByUsername(username)
+        return mapToDto(getUserByUsername(username));
+    }
+
+    @Override
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> {
-                    log.warn("Пользователь не найден по username: {}", username);
+                    log.warn("Пользователь не найден по username: {}",
+                            username);
                     return new UserNotFoundException();
                 });
-        return mapToDto(user);
     }
 
     @Override
@@ -109,9 +110,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> searchUsers(String query) {
-
-        log.debug("Поиск пользователей по запросу: {}", query);
-
+        log.debug("Поиск пользователей: '{}'", query);
         return userRepository.searchUsers(query)
                 .stream()
                 .map(this::mapToDto)
@@ -123,13 +122,20 @@ public class UserServiceImpl implements UserService {
     public void updateProfile(String email, UserDto dto) {
         User user = getUserByEmail(email);
 
-        if (dto.getName() != null) user.setName(dto.getName());
-        if (dto.getBio() != null) user.setBio(dto.getBio());
-        if (dto.getAvatar() != null) user.setAvatar(dto.getAvatar());
+        if (dto.getName() != null && !dto.getName().isBlank()) {
+            user.setName(dto.getName());
+        }
+        if (dto.getBio() != null) {
+            user.setBio(dto.getBio());
+        }
+        if (dto.getAvatar() != null && !dto.getAvatar().isBlank()) {
+            user.setAvatar(dto.getAvatar());
+        }
 
         userRepository.save(user);
-        log.info("Профиль обновлён для пользователя: {}", email);
+        log.info("Профиль обновлён: {}", email);
     }
+
 
     private UserDto mapToDto(User user) {
         return UserDto.builder()
@@ -139,9 +145,12 @@ public class UserServiceImpl implements UserService {
                 .name(user.getName())
                 .bio(user.getBio())
                 .avatar(user.getAvatar())
-                .postCount(user.getPostCount())
-                .followersCount(user.getFollowersCount())
-                .followingCount(user.getFollowingCount())
+                .postCount(user.getPostCount() != null
+                        ? user.getPostCount() : 0)
+                .followersCount(user.getFollowersCount() != null
+                        ? user.getFollowersCount() : 0)
+                .followingCount(user.getFollowingCount() != null
+                        ? user.getFollowingCount() : 0)
                 .build();
     }
 }

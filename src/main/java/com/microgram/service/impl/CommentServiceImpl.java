@@ -33,10 +33,10 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentDto> getCommentsByPostId(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> {
-                    log.warn("Пост не найден при загрузке комментариев id={}", postId);
+                    log.warn("Пост не найден при загрузке комментариев: {}",
+                            postId);
                     return new PostNotFoundException();
                 });
-
         return commentRepository.findByPostOrderByCreatedAtAsc(post)
                 .stream()
                 .map(this::mapToDto)
@@ -45,28 +45,28 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public void addComment(Long postId, CommentCreateDto dto, String authorEmail) {
+    public void addComment(Long postId, CommentCreateDto dto,
+                           String authorEmail) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(PostNotFoundException::new);
 
         User author = userService.getUserByEmail(authorEmail);
 
-        Comment comment = Comment.builder()
+        commentRepository.save(Comment.builder()
                 .post(post)
                 .user(author)
                 .text(dto.getText())
-                .build();
-
-        commentRepository.save(comment);
+                .build());
 
         post.setCommentCount(
                 post.getCommentCount() == null
                         ? 1
                         : post.getCommentCount() + 1
         );
+        postRepository.save(post);
 
-        log.info("Пользователь {} добавил комментарий к посту id={}",
-                authorEmail, postId);
+        log.info("Комментарий добавлен: пост={}, user={}",
+                postId, authorEmail);
     }
 
     @Override
@@ -81,22 +81,24 @@ public class CommentServiceImpl implements CommentService {
         Post post = comment.getPost();
 
         if (!post.getUser().getEmail().equals(currentUserEmail)) {
-            log.warn("Пользователь {} пытается удалить комментарий " +
-                    "под чужим постом id={}", currentUserEmail, commentId);
+            log.warn("Нет прав на удаление комментария id={}, user={}",
+                    commentId, currentUserEmail);
             throw new ForbiddenException();
         }
 
         commentRepository.delete(comment);
 
         post.setCommentCount(
-                Math.max(0, post.getCommentCount() == null
+                post.getCommentCount() == null
                         ? 0
-                        : post.getCommentCount() - 1));
+                        : Math.max(0, post.getCommentCount() - 1)
+        );
         postRepository.save(post);
 
-        log.info("Пользователь {} удалил комментарий id={}",
-                currentUserEmail, commentId);
+        log.info("Комментарий id={} удалён пользователем {}",
+                commentId, currentUserEmail);
     }
+
 
     private CommentDto mapToDto(Comment comment) {
         return CommentDto.builder()

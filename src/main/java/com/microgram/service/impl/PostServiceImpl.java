@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -51,8 +50,8 @@ public class PostServiceImpl implements PostService {
         author.setPostCount(author.getPostCount() + 1);
         userRepository.save(author);
 
-        log.info("Пользователь {} создал пост id={}",
-                authorEmail, post.getId());
+        log.info("Создан пост id={} пользователем {}", post.getId(),
+                authorEmail);
     }
 
     @Override
@@ -78,13 +77,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<PostDto> getPostsByUsername(
             String username, String currentUserEmail) {
-        User user = userRepository
-                .findByUsername(username)
-                .orElseThrow(() -> {
-                    log.warn("Пользователь не найден: {}", username);
-                    return new com.microgram.exception
-                            .UserNotFoundException();
-                });
+        User user = userService.getUserByUsername(username);
         return postRepository.findByUserOrderByCreatedAtDesc(user)
                 .stream()
                 .map(post -> mapToDto(post, currentUserEmail))
@@ -98,8 +91,8 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(PostNotFoundException::new);
 
         if (!post.getUser().getEmail().equals(currentUserEmail)) {
-            log.warn("Пользователь {} пытается удалить чужой пост id={}",
-                    currentUserEmail, postId);
+            log.warn("Нет прав на удаление поста id={}, user={}",
+                    postId, currentUserEmail);
             throw new ForbiddenException();
         }
 
@@ -122,11 +115,11 @@ public class PostServiceImpl implements PostService {
         User user = userService.getUserByEmail(currentUserEmail);
 
         if (likeRepository.existsByPostAndUser(post, user)) {
-            Like like = likeRepository.findByPostAndUser(post, user)
-                    .orElseThrow();
-            likeRepository.delete(like);
+            likeRepository.findByPostAndUser(post, user)
+                    .ifPresent(likeRepository::delete);
             post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
-            log.debug("Лайк убран: пост={}, user={}", postId, currentUserEmail);
+            log.debug("Лайк убран: пост={}, user={}",
+                    postId, currentUserEmail);
         } else {
             likeRepository.save(Like.builder()
                     .post(post)
@@ -144,10 +137,13 @@ public class PostServiceImpl implements PostService {
         boolean liked = false;
         if (currentUserEmail != null) {
             try {
-                User currentUser = userService.getUserByEmail(currentUserEmail);
-                liked = likeRepository.existsByPostAndUser(post, currentUser);
+                User currentUser = userService.getUserByEmail(
+                        currentUserEmail);
+                liked = likeRepository.existsByPostAndUser(
+                        post, currentUser);
             } catch (Exception e) {
-                log.debug("Не удалось проверить лайк: {}", currentUserEmail);
+                log.debug("Не удалось проверить лайк для: {}",
+                        currentUserEmail);
             }
         }
         return PostDto.builder()
@@ -155,8 +151,10 @@ public class PostServiceImpl implements PostService {
                 .user(mapUserToDto(post.getUser()))
                 .image(post.getImage())
                 .description(post.getDescription())
-                .likeCount(post.getLikeCount())
-                .commentCount(post.getCommentCount())
+                .likeCount(post.getLikeCount() != null
+                        ? post.getLikeCount() : 0)
+                .commentCount(post.getCommentCount() != null
+                        ? post.getCommentCount() : 0)
                 .createdAt(post.getCreatedAt())
                 .likedByCurrentUser(liked)
                 .build();
@@ -169,9 +167,12 @@ public class PostServiceImpl implements PostService {
                 .email(user.getEmail())
                 .name(user.getName())
                 .avatar(user.getAvatar())
-                .postCount(user.getPostCount())
-                .followersCount(user.getFollowersCount())
-                .followingCount(user.getFollowingCount())
+                .postCount(user.getPostCount() != null
+                        ? user.getPostCount() : 0)
+                .followersCount(user.getFollowersCount() != null
+                        ? user.getFollowersCount() : 0)
+                .followingCount(user.getFollowingCount() != null
+                        ? user.getFollowingCount() : 0)
                 .build();
     }
 }

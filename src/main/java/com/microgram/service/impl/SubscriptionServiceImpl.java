@@ -1,6 +1,5 @@
 package com.microgram.service.impl;
 
-import com.microgram.exception.UserNotFoundException;
 import com.microgram.model.Subscription;
 import com.microgram.model.User;
 import com.microgram.repository.SubscriptionRepository;
@@ -27,11 +26,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
                                    String followingUsername) {
         User follower = userService.getUserByEmail(followerEmail);
 
-        User following = userRepository.findByUsername(followingUsername)
-                .orElseThrow(() -> {
-                    log.warn("Пользователь не найден: {}", followingUsername);
-                    return new UserNotFoundException();
-                });
+        User following = userService.getUserByUsername(followingUsername);
 
         if (follower.getId().equals(following.getId())) {
             log.warn("Попытка подписаться на себя: {}", followerEmail);
@@ -41,10 +36,9 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         if (subscriptionRepository
                 .existsByFollowerAndFollowing(follower, following)) {
 
-            Subscription sub = subscriptionRepository
+            subscriptionRepository
                     .findByFollowerAndFollowing(follower, following)
-                    .orElseThrow();
-            subscriptionRepository.delete(sub);
+                    .ifPresent(subscriptionRepository::delete);
 
             follower.setFollowingCount(
                     Math.max(0, follower.getFollowingCount() - 1));
@@ -61,7 +55,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
             follower.setFollowingCount(follower.getFollowingCount() + 1);
             following.setFollowersCount(following.getFollowersCount() + 1);
 
-            log.info("{} подписался на {}", followerEmail, followingUsername);
+            log.info("{} подписался на {}",
+                    followerEmail, followingUsername);
         }
 
         userRepository.save(follower);
@@ -73,12 +68,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
                                String followingUsername) {
         try {
             User follower = userService.getUserByEmail(followerEmail);
-            User following = userRepository
-                    .findByUsername(followingUsername)
-                    .orElse(null);
-
-            if (following == null) return false;
-
+            User following = userService.getUserByUsername(followingUsername);
             return subscriptionRepository
                     .existsByFollowerAndFollowing(follower, following);
         } catch (Exception e) {

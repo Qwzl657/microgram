@@ -17,6 +17,8 @@ public interface UserService extends UserDetailsService {
 
     UserDto getUserDtoByUsername(String username);
 
+    User getUserByUsername(String username);
+
     User getUserById(Long id);
 
     List<UserDto> searchUsers(String query);
