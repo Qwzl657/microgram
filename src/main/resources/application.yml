@@ -33,7 +33,13 @@ spring:
 server:
   port: 8082
 
+app:
+  upload:
+    avatars: src/main/resources/static/avatars
+    posts: src/main/resources/static/posts
+
 logging:
   level:
     kg.attractor.microgram: DEBUG
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
+  config: classpath:logback-spring.xml
