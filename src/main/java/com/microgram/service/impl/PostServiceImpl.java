@@ -11,6 +11,7 @@ import com.microgram.model.User;
 import com.microgram.repository.CommentRepository;
 import com.microgram.repository.LikeRepository;
 import com.microgram.repository.PostRepository;
+import com.microgram.repository.UserRepository;
 import com.microgram.service.FileService;
 import com.microgram.service.PostService;
 import com.microgram.service.UserService;
@@ -29,6 +30,7 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
+    private final UserRepository userRepository;
     private final UserService userService;
     private final FileService fileService;
 
@@ -36,23 +38,21 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public void createPost(PostCreateDto dto, String authorEmail) {
         User author = userService.getUserByEmail(authorEmail);
-
         String imageName = fileService.savePostImage(dto.getImage());
 
         Post post = Post.builder()
                 .user(author)
                 .image(imageName)
                 .description(dto.getDescription())
-                .likeCount(0)
-                .commentCount(0)
                 .build();
 
         postRepository.save(post);
 
         author.setPostCount(author.getPostCount() + 1);
-        userService.updateProfile(authorEmail, mapUserToDto(author));
+        userRepository.save(author);
 
-        log.info("Пользователь {} создал пост id={}", authorEmail, post.getId());
+        log.info("Пользователь {} создал пост id={}",
+                authorEmail, post.getId());
     }
 
     @Override
@@ -62,15 +62,13 @@ public class PostServiceImpl implements PostService {
                     log.warn("Пост не найден id={}", id);
                     return new PostNotFoundException();
                 });
-
         return mapToDto(post, currentUserEmail);
     }
 
     @Override
     public List<PostDto> getFeedForUser(String email) {
         User user = userService.getUserByEmail(email);
-        log.debug("Загрузка ленты для пользователя: {}", email);
-
+        log.debug("Загрузка ленты для: {}", email);
         return postRepository.findFeedForUser(user.getId())
                 .stream()
                 .map(post -> mapToDto(post, email))
@@ -78,11 +76,15 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostDto> getPostsByUsername(String username, String currentUserEmail) {
-        User user = userService.getUserById(
-                userService.getUserDtoByUsername(username).getId()
-        );
-
+    public List<PostDto> getPostsByUsername(
+            String username, String currentUserEmail) {
+        User user = userRepository
+                .findByUsername(username)
+                .orElseThrow(() -> {
+                    log.warn("Пользователь не найден: {}", username);
+                    return new com.microgram.exception
+                            .UserNotFoundException();
+                });
         return postRepository.findByUserOrderByCreatedAtDesc(user)
                 .stream()
                 .map(post -> mapToDto(post, currentUserEmail))
@@ -105,9 +107,11 @@ public class PostServiceImpl implements PostService {
 
         User author = post.getUser();
         author.setPostCount(Math.max(0, author.getPostCount() - 1));
+        userRepository.save(author);
 
         postRepository.delete(post);
-        log.info("Пользователь {} удалил пост id={}", currentUserEmail, postId);
+        log.info("Пост id={} удалён пользователем {}",
+                postId, currentUserEmail);
     }
 
     @Override
@@ -115,7 +119,6 @@ public class PostServiceImpl implements PostService {
     public void toggleLike(Long postId, String currentUserEmail) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(PostNotFoundException::new);
-
         User user = userService.getUserByEmail(currentUserEmail);
 
         if (likeRepository.existsByPostAndUser(post, user)) {
@@ -123,15 +126,15 @@ public class PostServiceImpl implements PostService {
                     .orElseThrow();
             likeRepository.delete(like);
             post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
-            log.debug("Пользователь {} убрал лайк с поста id={}", currentUserEmail, postId);
+            log.debug("Лайк убран: пост={}, user={}", postId, currentUserEmail);
         } else {
-            Like like = Like.builder()
+            likeRepository.save(Like.builder()
                     .post(post)
                     .user(user)
-                    .build();
-            likeRepository.save(like);
+                    .build());
             post.setLikeCount(post.getLikeCount() + 1);
-            log.debug("Пользователь {} лайкнул пост id={}", currentUserEmail, postId);
+            log.debug("Лайк поставлен: пост={}, user={}",
+                    postId, currentUserEmail);
         }
 
         postRepository.save(post);
@@ -139,16 +142,14 @@ public class PostServiceImpl implements PostService {
 
     private PostDto mapToDto(Post post, String currentUserEmail) {
         boolean liked = false;
-
         if (currentUserEmail != null) {
             try {
                 User currentUser = userService.getUserByEmail(currentUserEmail);
                 liked = likeRepository.existsByPostAndUser(post, currentUser);
             } catch (Exception e) {
-                log.debug("Не удалось проверить лайк для: {}", currentUserEmail);
+                log.debug("Не удалось проверить лайк: {}", currentUserEmail);
             }
         }
-
         return PostDto.builder()
                 .id(post.getId())
                 .user(mapUserToDto(post.getUser()))

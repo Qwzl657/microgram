@@ -59,8 +59,11 @@ public class CommentServiceImpl implements CommentService {
 
         commentRepository.save(comment);
 
-        post.setCommentCount(post.getCommentCount() + 1);
-        postRepository.save(post);
+        post.setCommentCount(
+                post.getCommentCount() == null
+                        ? 1
+                        : post.getCommentCount() + 1
+        );
 
         log.info("Пользователь {} добавил комментарий к посту id={}",
                 authorEmail, postId);
@@ -85,7 +88,10 @@ public class CommentServiceImpl implements CommentService {
 
         commentRepository.delete(comment);
 
-        post.setCommentCount(Math.max(0, post.getCommentCount() - 1));
+        post.setCommentCount(
+                Math.max(0, post.getCommentCount() == null
+                        ? 0
+                        : post.getCommentCount() - 1));
         postRepository.save(post);
 
         log.info("Пользователь {} удалил комментарий id={}",

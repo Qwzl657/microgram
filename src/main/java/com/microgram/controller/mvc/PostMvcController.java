@@ -1,10 +1,10 @@
 package com.microgram.controller.mvc;
 
 import jakarta.validation.Valid;
-import kg.attractor.microgram.dto.CommentCreateDto;
-import kg.attractor.microgram.dto.PostCreateDto;
-import kg.attractor.microgram.service.CommentService;
-import kg.attractor.microgram.service.PostService;
+import com.microgram.dto.CommentCreateDto;
+import com.microgram.dto.PostCreateDto;
+import com.microgram.service.CommentService;
+import com.microgram.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;

@@ -1,5 +1,6 @@
 package com.microgram.service.impl;
 
+import com.microgram.exception.UserNotFoundException;
 import com.microgram.model.Subscription;
 import com.microgram.model.User;
 import com.microgram.repository.SubscriptionRepository;
@@ -22,43 +23,45 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     @Transactional
-    public void toggleSubscription(String followerEmail, String followingUsername) {
-
+    public void toggleSubscription(String followerEmail,
+                                   String followingUsername) {
         User follower = userService.getUserByEmail(followerEmail);
-        User following = userService.getUserDtoByUsername(followingUsername) != null
-                ? userRepository.findByUsername(followingUsername).orElseThrow()
-                : null;
 
-        if (following == null) return;
+        User following = userRepository.findByUsername(followingUsername)
+                .orElseThrow(() -> {
+                    log.warn("Пользователь не найден: {}", followingUsername);
+                    return new UserNotFoundException();
+                });
 
         if (follower.getId().equals(following.getId())) {
-            log.warn("Пользователь {} пытается подписаться на себя", followerEmail);
+            log.warn("Попытка подписаться на себя: {}", followerEmail);
             return;
         }
 
-        if (subscriptionRepository.existsByFollowerAndFollowing(follower, following)) {
+        if (subscriptionRepository
+                .existsByFollowerAndFollowing(follower, following)) {
+
             Subscription sub = subscriptionRepository
                     .findByFollowerAndFollowing(follower, following)
                     .orElseThrow();
-
             subscriptionRepository.delete(sub);
 
-            follower.setFollowingCount(Math.max(0, follower.getFollowingCount() - 1));
-            following.setFollowersCount(Math.max(0, following.getFollowersCount() - 1));
+            follower.setFollowingCount(
+                    Math.max(0, follower.getFollowingCount() - 1));
+            following.setFollowersCount(
+                    Math.max(0, following.getFollowersCount() - 1));
 
-            log.info("Пользователь {} отписался от {}", followerEmail, followingUsername);
+            log.info("{} отписался от {}", followerEmail, followingUsername);
         } else {
-            Subscription sub = Subscription.builder()
+            subscriptionRepository.save(Subscription.builder()
                     .follower(follower)
                     .following(following)
-                    .build();
-
-            subscriptionRepository.save(sub);
+                    .build());
 
             follower.setFollowingCount(follower.getFollowingCount() + 1);
             following.setFollowersCount(following.getFollowersCount() + 1);
 
-            log.info("Пользователь {} подписался на {}", followerEmail, followingUsername);
+            log.info("{} подписался на {}", followerEmail, followingUsername);
         }
 
         userRepository.save(follower);
@@ -66,10 +69,12 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
-    public boolean isFollowing(String followerEmail, String followingUsername) {
+    public boolean isFollowing(String followerEmail,
+                               String followingUsername) {
         try {
             User follower = userService.getUserByEmail(followerEmail);
-            User following = userRepository.findByUsername(followingUsername)
+            User following = userRepository
+                    .findByUsername(followingUsername)
                     .orElse(null);
 
             if (following == null) return false;

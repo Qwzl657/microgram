@@ -43,12 +43,15 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Boolean enabled;
 
+    @Builder.Default
     @Column(name = "post_count")
     private Integer postCount = 0;
 
+    @Builder.Default
     @Column(name = "followers_count")
     private Integer followersCount = 0;
 
+    @Builder.Default
     @Column(name = "following_count")
     private Integer followingCount = 0;
 
@@ -75,19 +78,13 @@ public class User implements UserDetails {
     }
 
     @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+    public boolean isAccountNonExpired() { return true; }
 
     @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
+    public boolean isAccountNonLocked() { return true; }
 
     @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
+    public boolean isCredentialsNonExpired() { return true; }
 
     @Override
     public boolean isEnabled() {

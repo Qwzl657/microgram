@@ -4,66 +4,88 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
+@EnableMethodSecurity
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final UserDetailsService userService;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .formLogin(login -> login
+                .userDetailsService(userService)
+
+                .formLogin(form -> form
                         .loginPage("/auth/login")
                         .loginProcessingUrl("/auth/login")
-                        .defaultSuccessUrl("/")
+                        .defaultSuccessUrl("/", true)
                         .failureUrl("/auth/login?error=true")
                         .permitAll()
                 )
+
                 .logout(logout -> logout
-                        .logoutRequestMatcher(
-                                PathPatternRequestMatcher
-                                        .withDefaults()
-                                        .matcher("/auth/logout")
-                        )
+                        .logoutUrl("/auth/logout")
+                        .logoutSuccessUrl("/auth/login?logout=true")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
-                        .logoutSuccessUrl("/auth/login?logout=true")
                         .permitAll()
                 )
-                .httpBasic(Customizer.withDefaults())
+
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin())
+                )
+
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers(
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
-                                "/avatars/**",
-                                "/posts/**",
-                                "/h2-console/**"
+                                "/favicon.ico"
                         ).permitAll()
 
                         .requestMatchers(
-                                "/auth/login",
-                                "/auth/register",
-                                "/auth/forgot-password",
-                                "/auth/reset-password"
+                                "/avatars/**",
+                                "/posts/**"
                         ).permitAll()
 
-                        .requestMatchers(HttpMethod.GET,
-                                "/users/**",
-                                "/search"
+                        .requestMatchers("/h2-console/**").permitAll()
+
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
                         ).permitAll()
+
+                        .requestMatchers("/auth/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/users/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/search").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/users/**").authenticated()
+
+                        .requestMatchers(HttpMethod.POST, "/posts/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/posts/new").authenticated()
+
+                        .requestMatchers(HttpMethod.POST, "/api/**").authenticated()
+
+                        .requestMatchers("/").authenticated()
 
                         .anyRequest().authenticated()
                 );
-
-        http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();
     }

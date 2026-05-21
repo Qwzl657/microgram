@@ -1,9 +1,9 @@
 package com.microgram.controller.mvc;
 
-import kg.attractor.microgram.dto.UserDto;
-import kg.attractor.microgram.service.PostService;
-import kg.attractor.microgram.service.SubscriptionService;
-import kg.attractor.microgram.service.UserService;
+import com.microgram.dto.UserDto;
+import com.microgram.service.PostService;
+import com.microgram.service.SubscriptionService;
+import com.microgram.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -14,10 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-// MVC контроллер профилей пользователей
-// Конспект Часть 3: "@Controller, @PathVariable"
-// Задание: "Страница профиля, подписки"
-// Ориентир: ProfileMvcController.java из JobSearch
 @Slf4j
 @Controller
 @RequestMapping("/users")
@@ -28,9 +24,6 @@ public class ProfileMvcController {
     private final PostService postService;
     private final SubscriptionService subscriptionService;
 
-    // GET /users/{username} — страница профиля
-    // Задание: "Страница профиля: Логин, Аватар, Имя, Инфо, Публикации"
-    // Доступна всем — авторизованным и нет
     @GetMapping("/{username}")
     public String profile(
             @PathVariable String username,
@@ -58,8 +51,6 @@ public class ProfileMvcController {
         return "users/profile";
     }
 
-    // POST /users/{username}/subscribe — подписаться / отписаться
-    // Задание: "Возможность подписываться на других пользователей"
     @PostMapping("/{username}/subscribe")
     public String subscribe(
             @PathVariable String username,

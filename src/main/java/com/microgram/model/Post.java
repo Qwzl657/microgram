@@ -29,9 +29,11 @@ public class Post {
     @Column(length = 2200)
     private String description;
 
+    @Builder.Default
     @Column(name = "like_count")
     private Integer likeCount = 0;
 
+    @Builder.Default
     @Column(name = "comment_count")
     private Integer commentCount = 0;
 
