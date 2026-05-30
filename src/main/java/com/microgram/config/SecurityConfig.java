@@ -46,40 +46,35 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers(
-                                "/css/**",
-                                "/js/**",
-                                "/images/**",
-                                "/favicon.ico"
-                        ).permitAll()
-
-                        .requestMatchers(
-                                "/avatars/**",
-                                "/posts/**"
+                                "/css/**", "/js/**",
+                                "/images/**", "/favicon.ico"
                         ).permitAll()
 
                         .requestMatchers("/h2-console/**").permitAll()
-
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/avatars/**").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/users/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/search").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/search").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users/**").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/users/**").authenticated()
-
-                        .requestMatchers(HttpMethod.POST, "/posts/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/posts/new").authenticated()
 
+                        .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/posts/feed").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/posts/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/users/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/**").authenticated()
 
                         .requestMatchers("/").authenticated()
