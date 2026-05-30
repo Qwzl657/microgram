@@ -34,17 +34,20 @@ public class ProfileMvcController {
         model.addAttribute("profileUser", profileUser);
 
         String currentEmail = auth != null ? auth.getName() : null;
+
         model.addAttribute("posts",
                 postService.getPostsByUsername(username, currentEmail));
 
         if (auth != null) {
             boolean isFollowing = subscriptionService
-                    .isFollowing(auth.getName(), username);
+                    .isFollowing(currentEmail, username);
             model.addAttribute("isFollowing", isFollowing);
 
-            boolean isOwnProfile = auth.getName()
-                    .equals(profileUser.getEmail());
+            boolean isOwnProfile = currentEmail.equals(profileUser.getEmail());
             model.addAttribute("isOwnProfile", isOwnProfile);
+        } else {
+            model.addAttribute("isFollowing", false);
+            model.addAttribute("isOwnProfile", false);
         }
 
         log.debug("Открыт профиль: {}", username);

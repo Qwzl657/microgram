@@ -29,7 +29,7 @@
                 <div class="card-header bg-white d-flex
                             align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-2">
-                        <#if post.user.avatar??>
+                        <#if post.user.avatar?? && post.user.avatar != "">
                             <img src="/avatars/${post.user.avatar}"
                                  class="avatar-sm" alt="avatar">
                         <#else>
@@ -57,7 +57,7 @@
                     </#if>
                 </div>
 
-                <img src="/posts/${post.image}" class="post-image" alt="post">
+                <img src="/post-images/${post.image}" class="post-image" alt="post">
 
                 <div class="card-body">
 
@@ -84,7 +84,7 @@
                         <@spring.message 'post.likes'/>
                     </div>
 
-                    <#if post.description??>
+                    <#if post.description?? && post.description != "">
                         <div class="mb-3">
                             <span class="fw-bold">${post.user.username}</span>
                             ${post.description}
@@ -101,7 +101,7 @@
                         <#else>
                             <#list comments as comment>
                                 <div class="d-flex gap-2 mb-2 align-items-start">
-                                    <#if comment.user.avatar??>
+                                    <#if comment.user.avatar?? && comment.user.avatar != "">
                                         <img src="/avatars/${comment.user.avatar}"
                                              class="avatar-sm" alt="avatar">
                                     <#else>
@@ -148,10 +148,6 @@
                                     <@spring.message 'post.comment.submit'/>
                                 </button>
                             </div>
-                            <@spring.bind "newComment.text"/>
-                            <#list spring.status.errorMessages as msg>
-                                <div class="text-danger small mt-1">${msg}</div>
-                            </#list>
                         </form>
                     </#if>
 

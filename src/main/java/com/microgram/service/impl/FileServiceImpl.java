@@ -24,15 +24,13 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public String saveAvatar(MultipartFile file, String username) {
-
         if (file == null || file.isEmpty()) {
             log.warn("Попытка сохранить пустой файл аватара для: {}", username);
             return "default.png";
         }
 
         if (!isImage(file)) {
-            log.warn("Файл аватара не является изображением: {}",
-                    file.getOriginalFilename());
+            log.warn("Файл аватара не является изображением: {}", file.getOriginalFilename());
             return "default.png";
         }
 
@@ -48,17 +46,14 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public String savePostImage(MultipartFile file) {
-
         if (file == null || file.isEmpty()) {
             log.warn("Попытка сохранить пустое изображение поста");
             throw new RuntimeException("Файл изображения пустой");
         }
 
         if (!isImage(file)) {
-            log.warn("Файл поста не является изображением: {}",
-                    file.getOriginalFilename());
-            throw new RuntimeException(
-                    "Файл должен быть изображением");
+            log.warn("Файл поста не является изображением: {}", file.getOriginalFilename());
+            throw new RuntimeException("Файл должен быть изображением");
         }
 
         String fileName = UUID.randomUUID()
@@ -72,22 +67,22 @@ public class FileServiceImpl implements FileService {
 
     private void saveFile(MultipartFile file, String dir, String fileName) {
         try {
-            Path dirPath = Paths.get(dir);
+            Path dirPath = Paths.get(dir).toAbsolutePath().normalize();
+
             if (!Files.exists(dirPath)) {
                 Files.createDirectories(dirPath);
-                log.debug("Создана папка: {}", dirPath.toAbsolutePath());
+                log.info("Создана директория для загрузок: {}", dirPath);
             }
 
-            Path filePath = dirPath.resolve(fileName);
-            file.transferTo(filePath.toFile());
+            Path filePath = dirPath.resolve(fileName).toAbsolutePath().normalize();
 
-            log.debug("Файл записан: {}", filePath.toAbsolutePath());
+            file.transferTo(filePath);
+
+            log.debug("Файл успешно записан по пути: {}", filePath);
 
         } catch (IOException e) {
-            log.error("Ошибка сохранения файла {}: {}",
-                    fileName, e.getMessage(), e);
-            throw new RuntimeException(
-                    "Не удалось сохранить файл: " + fileName, e);
+            log.error("Ошибка сохранения файла {}: {}", fileName, e.getMessage(), e);
+            throw new RuntimeException("Не удалось сохранить файл: " + fileName, e);
         }
     }
 
@@ -98,7 +93,6 @@ public class FileServiceImpl implements FileService {
 
     private String getExtension(String originalFileName) {
         if (originalFileName == null || !originalFileName.contains(".")) {
-            // По умолчанию — .jpg если расширение не определено
             return ".jpg";
         }
         return originalFileName

@@ -16,14 +16,13 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import java.time.Duration;
 import java.util.Locale;
 
-
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${app.upload.avatars:src/main/resources/static/avatars}")
+    @Value("${app.upload.avatars:uploads/avatars}")
     private String avatarsDir;
 
-    @Value("${app.upload.posts:src/main/resources/static/posts}")
+    @Value("${app.upload.posts:uploads/posts}")
     private String postsDir;
 
     @Bean
@@ -67,11 +66,11 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/avatars/**")
                 .addResourceLocations(
                         "file:" + avatarsDir + "/",
-                        "classpath:/static/avatars/"
+                        "classpath:/static/"
                 );
-        registry.addResourceHandler("/posts/**")
-                .addResourceLocations("file:" + postsDir + "/");
 
+        registry.addResourceHandler("/post-images/**")
+                .addResourceLocations("file:" + postsDir + "/");
 
         registry.addResourceHandler("/css/**")
                 .addResourceLocations("classpath:/static/css/");

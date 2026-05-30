@@ -57,11 +57,11 @@ public class SecurityConfig {
                         ).permitAll()
 
                         .requestMatchers("/avatars/**").permitAll()
+                        .requestMatchers("/posts/images/**").permitAll()
 
                         .requestMatchers("/auth/**").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/search").permitAll()
-
                         .requestMatchers(HttpMethod.GET, "/api/users/search").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/users/**").permitAll()

@@ -40,7 +40,7 @@
                     <div class="card post-card shadow-sm">
 
                         <div class="card-header bg-white d-flex align-items-center gap-2">
-                            <#if post.user.avatar??>
+                            <#if post.user.avatar?? && post.user.avatar != "">
                                 <img src="/avatars/${post.user.avatar}"
                                      class="avatar-sm" alt="avatar">
                             <#else>
@@ -54,7 +54,7 @@
                         </div>
 
                         <a href="/posts/${post.id}">
-                            <img src="/posts/${post.image}"
+                            <img src="/post-images/${post.image}"
                                  class="post-image" alt="post">
                         </a>
 
@@ -83,7 +83,7 @@
                                 <@spring.message 'post.likes'/>
                             </div>
 
-                            <#if post.description??>
+                            <#if post.description?? && post.description != "">
                                 <div class="mb-1">
                                     <span class="fw-bold">${post.user.username}</span>
                                     ${post.description}

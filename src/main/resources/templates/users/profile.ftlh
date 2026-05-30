@@ -24,7 +24,7 @@
 
     <div class="row mb-4">
         <div class="col-md-3 text-center">
-            <#if profileUser.avatar??>
+            <#if profileUser.avatar?? && profileUser.avatar != "">
                 <img src="/avatars/${profileUser.avatar}"
                      class="avatar-lg" alt="avatar">
             <#else>
@@ -42,7 +42,7 @@
                     <a href="/users/edit" class="btn btn-outline-secondary btn-sm">
                         <@spring.message 'profile.edit'/>
                     </a>
-                <#else>
+                <#elseif currentUser??>
                     <form action="/users/${profileUser.username}/subscribe"
                           method="post"
                           class="subscribe-form m-0"
@@ -94,10 +94,10 @@
                 </div>
             </div>
 
-            <#if profileUser.name??>
+            <#if profileUser.name?? && profileUser.name != "">
                 <div class="fw-bold">${profileUser.name}</div>
             </#if>
-            <#if profileUser.bio??>
+            <#if profileUser.bio?? && profileUser.bio != "">
                 <div class="text-muted">${profileUser.bio}</div>
             </#if>
 
@@ -118,7 +118,7 @@
             <#list posts as post>
                 <div class="col-4">
                     <a href="/posts/${post.id}">
-                        <img src="/posts/${post.image}"
+                        <img src="/post-images/${post.image}"
                              class="post-grid-img" alt="post">
                     </a>
                 </div>

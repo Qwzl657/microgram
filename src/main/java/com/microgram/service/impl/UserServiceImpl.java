@@ -31,11 +31,8 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByEmail(username)
                 .or(() -> userRepository.findByUsername(username))
                 .orElseThrow(() -> {
-                    log.warn("Попытка входа: пользователь не найден: {}",
-                            username);
-                    return new UsernameNotFoundException(
-                            "Пользователь не найден: " + username
-                    );
+                    log.warn("Попытка входа: пользователь не найден: {}", username);
+                    return new UsernameNotFoundException("Пользователь не найден: " + username);
                 });
     }
 
@@ -49,10 +46,8 @@ public class UserServiceImpl implements UserService {
         }
 
         if (userRepository.existsByUsername(dto.getUsername())) {
-            log.warn("Регистрация: username уже занят: {}",
-                    dto.getUsername());
-            throw new IllegalArgumentException(
-                    "Имя пользователя уже занято");
+            log.warn("Регистрация: username уже занят: {}", dto.getUsername());
+            throw new IllegalArgumentException("Имя пользователя уже занято");
         }
 
         User user = User.builder()
@@ -77,10 +72,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new UserNotFoundException("Email не может быть пустым");
+        }
         return userRepository.findByEmail(email)
+                .or(() -> userRepository.findByUsername(email))
                 .orElseThrow(() -> {
-                    log.warn("Пользователь не найден по email: {}", email);
-                    return new UserNotFoundException();
+                    log.warn("Пользователь не найден по email/username: {}", email);
+                    return new UserNotFoundException("Пользователь не найден: " + email);
                 });
     }
 
@@ -91,11 +90,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByUsername(String username) {
+        if (username == null || username.isBlank()) {
+            throw new UserNotFoundException("Username не может быть пустым");
+        }
         return userRepository.findByUsername(username)
+                .or(() -> userRepository.findByEmail(username))
                 .orElseThrow(() -> {
-                    log.warn("Пользователь не найден по username: {}",
-                            username);
-                    return new UserNotFoundException();
+                    log.warn("Пользователь не найден по username/email: {}", username);
+                    return new UserNotFoundException("Пользователь не найден: " + username);
                 });
     }
 
@@ -104,7 +106,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Пользователь не найден по id: {}", id);
-                    return new UserNotFoundException();
+                    return new UserNotFoundException("Пользователь не найден по id: " + id);
                 });
     }
 
@@ -136,7 +138,6 @@ public class UserServiceImpl implements UserService {
         log.info("Профиль обновлён: {}", email);
     }
 
-
     private UserDto mapToDto(User user) {
         return UserDto.builder()
                 .id(user.getId())
@@ -145,12 +146,9 @@ public class UserServiceImpl implements UserService {
                 .name(user.getName())
                 .bio(user.getBio())
                 .avatar(user.getAvatar())
-                .postCount(user.getPostCount() != null
-                        ? user.getPostCount() : 0)
-                .followersCount(user.getFollowersCount() != null
-                        ? user.getFollowersCount() : 0)
-                .followingCount(user.getFollowingCount() != null
-                        ? user.getFollowingCount() : 0)
+                .postCount(user.getPostCount() != null ? user.getPostCount() : 0)
+                .followersCount(user.getFollowersCount() != null ? user.getFollowersCount() : 0)
+                .followingCount(user.getFollowingCount() != null ? user.getFollowingCount() : 0)
                 .build();
     }
 }
