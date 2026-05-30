@@ -1,10 +1,5 @@
 <#import "/spring.ftl" as spring>
 
-<#if _csrf??>
-    <meta name="_csrf" content="${(_csrf.token)!''}"/>
-    <meta name="_csrf_header" content="${(_csrf.headerName)!'X-CSRF-TOKEN'}"/>
-</#if>
-
 <nav class="navbar navbar-light bg-white border-bottom">
     <div class="container">
 
@@ -43,17 +38,35 @@
             </#if>
 
             <form action="/auth/logout" method="post" class="m-0">
-                <#if _csrf??>
-                    <input type="hidden"
-                           name="${(_csrf.parameterName)!'_csrf'}"
-                           value="${(_csrf.token)!''}"/>
-                </#if>
+                <input type="hidden"
+                       name="${(_csrf.parameterName)!'_csrf'}"
+                       value="${(_csrf.token)!''}"/>
                 <button type="submit"
                         class="btn btn-link text-dark p-0"
                         title="<@spring.message 'nav.logout'/>">
                     <i class="bi bi-box-arrow-right fs-5"></i>
                 </button>
             </form>
+
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown">
+                    <i class="bi bi-translate"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="?lang=ru">
+                            <@spring.message 'nav.lang.ru'/>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="?lang=en">
+                            <@spring.message 'nav.lang.en'/>
+                        </a>
+                    </li>
+                </ul>
+            </div>
 
         </div>
     </div>
