@@ -1,16 +1,18 @@
-  <#import "/spring.ftl" as spring>
+<#import "/spring.ftl" as spring>
 <!DOCTYPE html>
 <html lang="${.locale}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${profileUser.username} — Microgram</title>
+    <meta name="_csrf" content="${(_csrf.token)!''}"/>
+    <meta name="_csrf_header" content="${(_csrf.headerName)!'X-CSRF-TOKEN'}"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
           rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
           rel="stylesheet">
     <style>
-        .avatar-lg { width:150px; height:150px; object-fit:cover; border-radius:50%; }
+        .avatar-lg     { width:150px; height:150px; object-fit:cover; border-radius:50%; }
         .post-grid-img { width:100%; aspect-ratio:1; object-fit:cover; cursor:pointer; }
     </style>
 </head>
@@ -22,7 +24,6 @@
 
     <div class="row mb-4">
         <div class="col-md-3 text-center">
-
             <#if profileUser.avatar??>
                 <img src="/avatars/${profileUser.avatar}"
                      class="avatar-lg" alt="avatar">
@@ -30,17 +31,15 @@
                 <img src="/avatars/default.png"
                      class="avatar-lg" alt="avatar">
             </#if>
-
         </div>
+
         <div class="col-md-9">
 
             <div class="d-flex align-items-center gap-3 mb-3">
-
                 <h4 class="mb-0">${profileUser.username}</h4>
 
                 <#if isOwnProfile?? && isOwnProfile>
-                    <a href="/users/edit"
-                       class="btn btn-outline-secondary btn-sm">
+                    <a href="/users/edit" class="btn btn-outline-secondary btn-sm">
                         <@spring.message 'profile.edit'/>
                     </a>
                 <#else>
@@ -48,27 +47,28 @@
                           method="post"
                           class="subscribe-form m-0"
                           data-username="${profileUser.username}">
-                        <#if _csrf??>
-                            <input type="hidden"
-                                   name="${(_csrf.parameterName)!'_csrf'}"
-                                   value="${(_csrf.token)!''}"/>
-                        </#if>
+                        <input type="hidden"
+                               name="${(_csrf.parameterName)!'_csrf'}"
+                               value="${(_csrf.token)!''}"/>
                         <#if isFollowing?? && isFollowing>
                             <button type="submit"
                                     class="subscribe-btn btn btn-outline-secondary btn-sm"
-                                    data-following="true">
+                                    data-following="true"
+                                    data-text-follow="<@spring.message 'profile.subscribe'/>"
+                                    data-text-unfollow="<@spring.message 'profile.unsubscribe'/>">
                                 <@spring.message 'profile.unsubscribe'/>
                             </button>
                         <#else>
                             <button type="submit"
                                     class="subscribe-btn btn btn-primary btn-sm"
-                                    data-following="false">
+                                    data-following="false"
+                                    data-text-follow="<@spring.message 'profile.subscribe'/>"
+                                    data-text-unfollow="<@spring.message 'profile.unsubscribe'/>">
                                 <@spring.message 'profile.subscribe'/>
                             </button>
                         </#if>
                     </form>
                 </#if>
-
             </div>
 
             <div class="d-flex gap-4 mb-3">
@@ -97,7 +97,6 @@
             <#if profileUser.name??>
                 <div class="fw-bold">${profileUser.name}</div>
             </#if>
-
             <#if profileUser.bio??>
                 <div class="text-muted">${profileUser.bio}</div>
             </#if>

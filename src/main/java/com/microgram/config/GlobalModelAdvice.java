@@ -8,8 +8,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
+
 @Slf4j
-@ControllerAdvice(basePackages = "kg.attractor.microgram.controller")
+@ControllerAdvice(basePackages = "com.microgram.controller")
 @RequiredArgsConstructor
 public class GlobalModelAdvice {
 

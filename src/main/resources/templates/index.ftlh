@@ -5,14 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Microgram</title>
+    <meta name="_csrf" content="${(_csrf.token)!''}"/>
+    <meta name="_csrf_header" content="${(_csrf.headerName)!'X-CSRF-TOKEN'}"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
           rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
           rel="stylesheet">
     <style>
-        .post-card { max-width:600px; margin:0 auto 24px auto; }
+        .post-card  { max-width:600px; margin:0 auto 24px auto; }
         .post-image { width:100%; object-fit:cover; max-height:600px; }
-        .avatar-sm { width:32px; height:32px; object-fit:cover; border-radius:50%; }
+        .avatar-sm  { width:32px; height:32px; object-fit:cover; border-radius:50%; }
     </style>
 </head>
 <body class="bg-light">
@@ -62,11 +64,6 @@
                                 <form class="like-form"
                                       data-post-id="${post.id}"
                                       style="display:inline;">
-                                    <#if _csrf??>
-                                        <input type="hidden"
-                                               name="${(_csrf.parameterName)!'_csrf'}"
-                                               value="${(_csrf.token)!''}"/>
-                                    </#if>
                                     <button type="submit"
                                             class="btn btn-link p-0 text-decoration-none">
                                         <#if post.likedByCurrentUser>
@@ -95,7 +92,8 @@
 
                             <a href="/posts/${post.id}"
                                class="text-muted text-decoration-none small">
-                                Посмотреть все комментарии (${post.commentCount!0})
+                                <@spring.message 'post.comments.view'/>
+                                (${post.commentCount!0})
                             </a>
 
                         </div>
